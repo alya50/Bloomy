@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,27 +55,26 @@ fun HomeScreen(
 
             }
         }
+        var readOnly by remember { mutableStateOf(true) }
+
+        Button(
+            onClick = {
+                readOnly = !readOnly
+            },
+        ) {
+            Text(text = if (readOnly) "Edit" else "Read Only")
+        }
 
         Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(40.dp),
         ) {
-            Text(
-                "Lorem ipsum",
-                fontFamily = GeistFontFamily(),
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 50.sp,
-                modifier = Modifier
-                    .padding(bottom = 20.dp)
+
+            TextEditor(
+                 readOnly = readOnly
             )
 
-            Text(
-                "Lorem ipsum Lorem is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially",
-                fontFamily = InterMd(),
-                fontWeight = FontWeight.Normal,
-                fontSize = 23.sp
-            )
         }
     }
 }
