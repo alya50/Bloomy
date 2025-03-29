@@ -58,6 +58,9 @@ fun TextEditor(
     BasicTextField(
         value = text,
         onValueChange = {
+            println("TextField:")
+            println(it.text.replace("\n", "/n")
+            )
             text = it
         },
         readOnly = readOnly,
