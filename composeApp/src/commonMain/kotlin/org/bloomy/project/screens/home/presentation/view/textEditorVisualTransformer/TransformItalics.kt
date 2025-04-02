@@ -8,8 +8,80 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.sp
+import org.bloomy.project.screens.home.domain.model.FormatterIndexes
+import org.bloomy.project.screens.home.domain.model.ItalicFormatterResult
 
-val ITALICS_REGEX_PATTERN = Regex(pattern = "(\\~{2})(\\s*\\b)([^\\*]*)(\\b\\s*)(\\~{2})")
+/**
+ * Finds Italic formatter indexes
+ * @param str String to find indexes in
+ * @param formatter Formatter to find indexes for
+ * @param formatterLength Length of formatter
+ * @return List of start and end indexes
+ */
+private fun findItalicFormatterIndexes(str: String): ItalicFormatterResult {
+    val formatter = '*'
+    val formatterContentIndexes = ArrayList<FormatterIndexes>(str.length / 4) // Pre-sized ArrayList
+    val formatterSpecifiersIndexes = ArrayList<Pair<Int, Int>>(str.length / 4)
+
+    var i = 0
+    while (i < str.length) {
+        // Count consecutive formatters
+        var count = 0
+        while (i < str.length && str[i] == formatter) {
+            count++
+            i++
+        }
+
+        // If we found formatters and there's content after them
+        if (count > 0 && i < str.length) {
+            val formatterStart = i
+
+            // Find the ending formatter
+            while (i < str.length && str[i] != formatter) {
+                i++
+            }
+
+            // Count ending formatters
+            var endCount = 0
+            val contentEnd = i
+            while (i < str.length && str[i] == formatter) {
+                endCount++
+                i++
+            }
+
+            // Valid italic formatting requires 1 or 3+ formatters on each side
+            if ((count == 1 || count >= 3) && (endCount == 1 || endCount >= 3)) {
+                formatterContentIndexes.add(FormatterIndexes(formatterStart, contentEnd - 1))
+                formatterSpecifiersIndexes.add(Pair(formatterStart - count, contentEnd - 1))
+            }
+            continue
+        }
+        i++
+    }
+
+    return ItalicFormatterResult(
+        formattedContents = formatterContentIndexes,
+        specifiers = formatterSpecifiersIndexes
+    )
+}
+
+
+fun findItalicFormatter(str: String) = findItalicFormatterIndexes(str)
+
+private fun addFormatterSpecifierStyle(builder: AnnotatedString.Builder, start: Int, end:Int
+                                       , readOnly: Boolean, textSize: Int) {
+    builder.addStyle(
+        style = SpanStyle(
+            color = Color.Gray,
+            baselineShift = BaselineShift.Superscript,
+            fontSize = if (readOnly) 0.sp else textSize.sp,
+        ),
+        start,
+        end
+    )
+
+}
+
 
 fun transformItalics(
     text: AnnotatedString,
@@ -17,43 +89,25 @@ fun transformItalics(
     textSize: Int,
     readOnly: Boolean,
 ): Transformation {
-    val matches = ITALICS_REGEX_PATTERN.findAll(text.text)
+    val matches = findItalicFormatter(text.text)
 
-    return if (matches.count() > 0) {
+    return if (matches.formattedContents.isNotEmpty()) {
         val builder = AnnotatedString.Builder(text)
-        for (match in matches) {
-            val matchRange = match.range
-
-            builder.addStyle(
-                style = SpanStyle(
-                    color = Color.Gray,
-                    fontFamily = italicFontFamily,
-                    baselineShift = BaselineShift.Superscript,
-                    fontSize = if (readOnly) 0.sp else textSize.sp
-                ),
-                matchRange.first,
-                matchRange.first + 2
-            )
-
-            builder.addStyle(
-                style = SpanStyle(
-                    color = Color.Gray,
-                    baselineShift = BaselineShift.Superscript,
-                    fontSize = if (readOnly) 0.sp else textSize.sp
-                ),
-                matchRange.last - 1,
-                matchRange.last + 1
-            )
-
+        for ((start, end) in matches.formattedContents) {
             builder.addStyle(
                 style = SpanStyle(
                     fontStyle = FontStyle.Italic,
                     fontFamily = italicFontFamily,
                     fontSize = textSize.sp
                 ),
-                matchRange.first + 2,
-                matchRange.last - 1
+                start,
+                end
             )
+        }
+
+        for ((start, end) in matches.specifiers) {
+            addFormatterSpecifierStyle(builder, start, start  + 1, readOnly, textSize)
+            addFormatterSpecifierStyle(builder, end +1, end + 2, readOnly, textSize)
         }
 
         Transformation(

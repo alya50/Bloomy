@@ -76,64 +76,6 @@ class TextEditorVisualTransformer(
 
 data class Transformation(val annotatedString: AnnotatedString, val offsetMapping: OffsetMapping)
 
-fun findFormatersIndexes(str: String, formatter: Char, formatterLength: Int): List<Pair<Int, Int>> {
-    var count = 0
-    val selectedIndexes = mutableListOf<Pair<Int, Int>>()
-    var firstFormatterIndex: Int? = null
-
-    for ((i, char) in str.withIndex()) {
-        if (count == formatterLength && char != formatter) {
-            count = 0
-
-            if (firstFormatterIndex == null) {
-                firstFormatterIndex = i
-                continue
-            } else {
-                selectedIndexes.add(Pair(firstFormatterIndex!! - formatterLength, i - 2 + formatterLength))
-                firstFormatterIndex = null
-                continue
-            }
-        }
-
-        if (count == formatterLength && firstFormatterIndex != null) {
-            selectedIndexes.add(Pair(firstFormatterIndex, i - 1))
-            count = 0
-            continue
-        }
-
-        if (count == formatterLength && char == formatter) {
-            count = 0
-            firstFormatterIndex = null
-            continue
-        }
-
-        if (char == formatter) {
-            if (i == str.length - 1) {
-                if (firstFormatterIndex == null) continue
-                selectedIndexes.add(Pair(firstFormatterIndex - formatterLength, i - 1 + formatterLength))
-                continue
-            }
-
-            count++
-        }
-    }
-
-    return selectedIndexes
-}
-
-
-fun findBoldFormatter(str: String): List<Pair<Int, Int>> {
-    return findFormatersIndexes(str, '*', 2)
-}
-
-fun findItalicFormatter(str: String) {
-    val indexes = findFormatersIndexes(str, '_', 2)
-
-    for (index in indexes) {
-        print(str.substring(index.first, index.second))
-    }
-}
-
 fun findLineFormatter(str: String, formatter: Char): List<Int> {
     val indexes = mutableListOf<Int>()
 

@@ -33,7 +33,7 @@ fun TextEditor(
                         "\n #Hashtag" +
                         "\n --Strikethrough--" +
                         "\n ``Monospace``" +
-                        "\n ~~Italics~~" +
+                        "\n *Italics*" +
                         "\n Normal text"
 
             )
