@@ -18,6 +18,7 @@ val colorStops = arrayOf(
     0.4f to Color(0xfffcd5a4),
     1f to Color(0xffffc787),
 )
+
 @Composable
 fun Chat() {
     Column(
