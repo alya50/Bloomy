@@ -18,7 +18,7 @@ import org.bloomy.project.screens.home.domain.model.ItalicFormatterResult
  * @param formatterLength Length of formatter
  * @return List of start and end indexes
  */
-private fun findItalicFormatterIndexes(str: String): ItalicFormatterResult {
+fun findItalicFormatterIndexes(str: String): ItalicFormatterResult {
     val formatter = '*'
     val formatterContentIndexes = ArrayList<FormatterIndexes>(str.length / 4) // Pre-sized ArrayList
     val formatterSpecifiersIndexes = ArrayList<Pair<Int, Int>>(str.length / 4)
@@ -50,10 +50,17 @@ private fun findItalicFormatterIndexes(str: String): ItalicFormatterResult {
             }
 
             // Valid italic formatting requires 1 or 3+ formatters on each side
-            if ((count == 1 || count >= 3) && (endCount == 1 || endCount >= 3)) {
-                formatterContentIndexes.add(FormatterIndexes(formatterStart, contentEnd - 1))
+
+            if (count == 1 && endCount == 1) {
+                formatterContentIndexes.add(FormatterIndexes(formatterStart, contentEnd ))
                 formatterSpecifiersIndexes.add(Pair(formatterStart - count, contentEnd - 1))
             }
+
+            if (count >= 3 && endCount >= 3) {
+                formatterContentIndexes.add(FormatterIndexes(formatterStart, contentEnd))
+                formatterSpecifiersIndexes.add(Pair(formatterStart - 3, contentEnd + 1))
+            }
+
             continue
         }
         i++
@@ -68,8 +75,7 @@ private fun findItalicFormatterIndexes(str: String): ItalicFormatterResult {
 
 fun findItalicFormatter(str: String) = findItalicFormatterIndexes(str)
 
-private fun addFormatterSpecifierStyle(builder: AnnotatedString.Builder, start: Int, end:Int
-                                       , readOnly: Boolean, textSize: Int) {
+private fun addFormatterSpecifierStyle(builder: AnnotatedString.Builder, start: Int, end:Int, readOnly: Boolean, textSize: Int) {
     builder.addStyle(
         style = SpanStyle(
             color = Color.Gray,
@@ -106,8 +112,8 @@ fun transformItalics(
         }
 
         for ((start, end) in matches.specifiers) {
-            addFormatterSpecifierStyle(builder, start, start  + 1, readOnly, textSize)
-            addFormatterSpecifierStyle(builder, end +1, end + 2, readOnly, textSize)
+            addFormatterSpecifierStyle(builder, start, start + 1 , readOnly, textSize)
+            addFormatterSpecifierStyle(builder, end + 1 , end + 2, readOnly, textSize)
         }
 
         Transformation(

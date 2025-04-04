@@ -1,4 +1,5 @@
-package org.bloomy.project
+
+    package org.bloomy.project
 
 interface Platform {
     val name: String
