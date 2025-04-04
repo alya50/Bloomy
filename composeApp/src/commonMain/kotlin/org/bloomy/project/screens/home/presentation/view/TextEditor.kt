@@ -18,7 +18,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.bloomy.project.core.theme.InterMd
-import org.bloomy.project.screens.home.presentation.view.textEditorVisualTransformer.TextEditorVisualTransformer
+import org.bloomy.project.screens.home.presentation.view.editor.textEditorVisualTransformer.TextEditorVisualTransformer
 
 
 @Composable

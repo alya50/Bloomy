@@ -9,9 +9,9 @@ import org.bloomy.project.navigation.main.domain.models.Route
 import org.bloomy.project.screens.home.presentation.view.HomeScreenRoot
 
 @Composable
-fun MainNavigationHost(
-    navController: NavHostController,
-) {
+fun MainNavigationHost() {
+    val navController = rememberNavController()
+
     NavHost(
         navController = navController,
         startDestination = Route.Home,

@@ -1,4 +1,4 @@
-package org.bloomy.project.screens.home.presentation.view.textEditorVisualTransformer
+package org.bloomy.project.screens.home.presentation.view.editor.textEditorVisualTransformer
 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily

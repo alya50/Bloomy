@@ -1,25 +1,23 @@
-package org.bloomy.project.screens.home.presentation.view.textEditorVisualTransformer
+package org.bloomy.project.screens.home.presentation.view.editor.textEditorVisualTransformer
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.style.BaselineShift
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 
-private val REGEX_PATTERN = Regex(pattern = "(\\-{2})(\\s*\\b)([^\\*]*)(\\b\\s*)(\\-{2})")
+val MONOSPACE_REGEX_PATTERN = Regex(pattern = "(\\`{2})(\\s*\\b)([^\\*]*)(\\b\\s*)(\\`{2})")
 
-fun transformStrikeThrough(
+fun transformMonospace(
     text: AnnotatedString,
-    strikethroughFontFamily: FontFamily,
+    monospaceFontFamily: FontFamily,
     textSize: Int,
     readOnly: Boolean,
 ): Transformation {
-    val matches = REGEX_PATTERN.findAll(text.text)
+    val matches = MONOSPACE_REGEX_PATTERN.findAll(text.text)
 
     return if (matches.count() > 0) {
         val builder = AnnotatedString.Builder(text)
@@ -38,8 +36,8 @@ fun transformStrikeThrough(
             builder.addStyle(
                 style = SpanStyle(
                     color = Color.Gray,
+                    fontSize = if (readOnly) 0.sp else textSize.sp,
                     baselineShift = BaselineShift.Superscript,
-                    fontSize = if (readOnly) 0.sp else textSize.sp
                 ),
                 matchRange.last - 1,
                 matchRange.last + 1
@@ -47,14 +45,11 @@ fun transformStrikeThrough(
 
             builder.addStyle(
                 style = SpanStyle(
-                    fontStyle = FontStyle.Italic,
-                    fontSize = textSize.sp,
-                    fontFamily = strikethroughFontFamily,
-                    textDecoration = TextDecoration.LineThrough,
-                    fontWeight = FontWeight.SemiBold
-                ),
-                matchRange.first + 2,
-                matchRange.last - 1
+                    fontFamily = monospaceFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    background = Color(0x30000000),
+                    fontSize = textSize.sp
+                ), matchRange.first + 2, matchRange.last - 1
             )
 
         }
@@ -62,5 +57,7 @@ fun transformStrikeThrough(
             annotatedString = builder.toAnnotatedString(),
             offsetMapping = OffsetMapping.Identity
         )
-    } else Transformation(annotatedString = text, offsetMapping = OffsetMapping.Identity)
+    } else {
+        Transformation(annotatedString = text, offsetMapping = OffsetMapping.Identity)
+    }
 }
