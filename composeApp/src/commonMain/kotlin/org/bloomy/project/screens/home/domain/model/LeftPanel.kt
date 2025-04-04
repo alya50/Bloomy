@@ -22,3 +22,8 @@ data class Folder(
     val name: String,
     val files: List<String> = listOf(),
 )
+
+sealed class LeftPanelAction {
+    data class onFolderClick(val folder: Folder): LeftPanelAction()
+    data class onSearchQueryChanged(val query: String): LeftPanelAction()
+}
