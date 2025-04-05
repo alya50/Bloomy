@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -16,16 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,40 +33,62 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bloomy.composeapp.generated.resources.Res
 import bloomy.composeapp.generated.resources.right
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.bloomy.project.core.composables.SinglelineTextField
 import org.bloomy.project.core.theme.OutfitFontFamily
-import org.bloomy.project.screens.home.domain.model.Folder
+import org.bloomy.project.screens.home.domain.model.FileData
+import org.bloomy.project.screens.home.domain.model.LeftPanelAction
 import org.jetbrains.compose.resources.painterResource
+import java.io.File
 
 @Composable
-fun Folders(
-    folders: List<Folder>,
-    listState: LazyListState = rememberLazyListState()
+fun FilesView(
+    files: MutableList<FileData>,
+    onAction: (LeftPanelAction) -> Unit,
 ) {
-    LazyColumn(
-        state = listState,
-    ) {
-        items(
-            folders,
-            key = { it.name }
-        ) { folder ->
-            Folder(
-                name = folder.name,
-                filesNames = folder.files,
-            )
-        }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
 
+    LaunchedEffect(lifecycleState) {
+        if (lifecycleState == Lifecycle.State.RESUMED) {
+            onAction(LeftPanelAction.onDirectoryRefresh)
+        }
+    }
+
+    Column {
+        for (file in files) {
+            if (file.current.isDirectory)
+                DirectoryView(
+                    name = file.current.name,
+                    files = file.directoryContents,
+                    onAction = onAction,
+                    file = file.current,
+                )
+            else
+                File(
+                    name = file.current.name,
+                )
+        }
     }
 }
 
+
 @Composable
-fun Folder(
+fun DirectoryView(
     name: String,
-    filesNames: List<String>,
+    file: File,
+    files: List<FileData>?,
+    onAction: (LeftPanelAction) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -77,10 +98,13 @@ fun Folder(
     ) {
         val isOpen = remember { mutableStateOf(false) }
 
-        FolderName(
+        DirectoryName(
             name = name,
             onClick = { isOpen.value = !isOpen.value },
-            isOpen = isOpen.value
+            isOpen = isOpen.value,
+            onRename = { prevName, newName ->
+                onAction(LeftPanelAction.onFolderRename(file, newName))
+            }
         )
 
         if (isOpen.value)
@@ -89,20 +113,30 @@ fun Folder(
                     .padding(start = 13.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
-                for (fileName in filesNames) {
-                    FileName(
-                        name = fileName,
-                    )
-                }
+                if (files != null)
+                    for (file in files) {
+                        if (file.current.isDirectory)
+                            DirectoryView(
+                                name = file.current.name,
+                                files = file.directoryContents!!,
+                                onAction = onAction,
+                                file = file.current,
+                            )
+                        else
+                            File(
+                                name = file.current.name,
+                            )
+                    }
             }
     }
 }
 
 @Composable
-fun FolderName(
+fun DirectoryName(
     name: String,
     onClick: () -> Unit,
     isOpen: Boolean,
+    onRename: (prevName: String, newName: String) -> Unit,
 ) {
     val animatedIconRotation: Float by animateFloatAsState(
         if (isOpen) 90f else 0f,
@@ -138,20 +172,57 @@ fun FolderName(
                         .height(25.dp)
                         .rotate(animatedIconRotation)
                 )
-                Text(
-                    text = name,
-                    fontFamily = OutfitFontFamily(),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xb8000000),
-                )
+
+                val readOnly = remember { MutableStateFlow(true) }
+                val fileName = remember(name) { MutableStateFlow(name) }
+
+                if (readOnly.value)
+                    Text(
+                        text = name,
+                        fontFamily = OutfitFontFamily(),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xb8000000),
+                        modifier = Modifier
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { onClick() },
+                                    onDoubleTap = {
+                                        readOnly.value = !readOnly.value
+                                    }
+                                )
+                            }
+                    )
+                else
+                    SinglelineTextField(
+                        value = name,
+                        onValueChange = {
+                            if (name != it)
+                                fileName.value = it
+                        },
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                readOnly.value = true
+                                onRename(fileName.value, fileName.value)
+                            },
+                        ),
+
+                        textStyle = TextStyle(
+                            fontFamily = OutfitFontFamily(),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xb8000000),
+                        ),
+                        modifier = Modifier
+                            .background(Color(0x1f000000))
+                    )
             }
         }
     }
 }
 
 @Composable
-fun FileName(
+fun File(
     name: String,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -171,12 +242,15 @@ fun FileName(
                     indication = null
                 )
         ) {
-            Text(
-                text = name,
-                fontFamily = OutfitFontFamily(),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color(0x8e000000),
+            SinglelineTextField(
+                value = name,
+                onValueChange = { },
+                textStyle = TextStyle(
+                    fontFamily = OutfitFontFamily(),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color(0x8e000000),
+                ),
             )
         }
     }

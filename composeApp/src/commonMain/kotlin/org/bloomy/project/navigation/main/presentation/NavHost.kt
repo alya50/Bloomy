@@ -7,6 +7,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.bloomy.project.navigation.main.domain.models.Route
 import org.bloomy.project.screens.home.presentation.view.HomeScreenRoot
+import org.bloomy.project.screens.home.presentation.viewModels.LeftPanelViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MainNavigationHost() {
@@ -17,7 +19,9 @@ fun MainNavigationHost() {
         startDestination = Route.Home,
     ) {
         composable<Route.Home>  {
-            HomeScreenRoot()
+            val leftPanelViewModel = koinViewModel<LeftPanelViewModel>()
+
+            HomeScreenRoot(leftPanelViewModel)
         }
     }
 }

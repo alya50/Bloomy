@@ -3,13 +3,11 @@ package org.bloomy.project.screens.home.domain.model
 import java.io.File
 
 data class LeftPanelState(
-    val folders: List<Folder> = listOf(),
-    val searchResults: List<SearchResult> = listOf(),
-    val selectedFolder: Folder? = null,
+    val files: MutableList<FileData> = mutableListOf(),
+    val searchResults: MutableList<SearchResult> = mutableListOf(),
     val selectedFile: File? = null,
     val isSearching: Boolean = false,
-    val searchQuery: String = "",
-    
+    val searchQuery: String = ""
 )
 
 data class SearchResult(
@@ -18,12 +16,14 @@ data class SearchResult(
     val description: String,
 )
 
-data class Folder(
-    val name: String,
-    val files: List<String> = listOf(),
+// We are using same data class for both folders and files because folders are also files
+data class FileData(
+    val current: File,
+    val directoryContents: MutableList<FileData>? = null,
 )
 
 sealed class LeftPanelAction {
-    data class onFolderClick(val folder: Folder): LeftPanelAction()
-    data class onSearchQueryChanged(val query: String): LeftPanelAction()
+    data class onFolderRename(val file: File, val newName: String) : LeftPanelAction()
+    data class onSearchQueryChanged(val query: String) : LeftPanelAction()
+    data object onDirectoryRefresh : LeftPanelAction()
 }

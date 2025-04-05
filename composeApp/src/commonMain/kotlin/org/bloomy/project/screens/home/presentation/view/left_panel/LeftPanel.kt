@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.bloomy.project.screens.home.domain.model.LeftPanelAction
 import org.bloomy.project.screens.home.domain.model.LeftPanelState
 
 val colorStops = arrayOf(
@@ -35,7 +36,9 @@ fun LeftPanelRoot(
 @Composable
 fun LeftPanel(
     state: LeftPanelState,
+    onAction: (LeftPanelAction) -> Unit,
 ) {
+
     Column(
         modifier = Modifier
             .shadow(
@@ -67,9 +70,9 @@ fun LeftPanel(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Folders(
-            folders = state.folders,
+        FilesView(
+            files = state.files,
+            onAction = onAction,
         )
     }
-
 }
