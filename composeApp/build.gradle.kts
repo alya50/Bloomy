@@ -77,7 +77,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.0pre-alpha"
     }
     packaging {
         resources {
@@ -104,9 +104,16 @@ compose.desktop {
         mainClass = "org.bloomy.project.MainKt"
 
         nativeDistributions {
+
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.bloomy.project"
-            packageVersion = "1.0.0"
+            packageName = "Bloomy"
+
+            windows {
+                packageVersion = "0.0.0"
+            }
+            linux {
+                packageVersion = "0.0.0"
+            }
         }
     }
 }

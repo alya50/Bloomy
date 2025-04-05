@@ -26,7 +26,10 @@ class LeftPanelViewModel (): ViewModel() {
             searchQuery = query
         )
 
-        // TODO
+        _state.value = _state.value.copy(
+            searchQuery = query,
+            isSearching = true
+        )
     }
 
     fun loadFolders() {
