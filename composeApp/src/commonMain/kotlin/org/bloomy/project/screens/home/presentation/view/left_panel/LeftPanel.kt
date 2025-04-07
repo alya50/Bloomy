@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.bloomy.project.screens.home.domain.model.FilesAction
+import org.bloomy.project.screens.home.domain.model.FilesState
 import org.bloomy.project.screens.home.domain.model.LeftPanelAction
 import org.bloomy.project.screens.home.domain.model.LeftPanelState
 
@@ -36,9 +38,10 @@ fun LeftPanelRoot(
 @Composable
 fun LeftPanel(
     state: LeftPanelState,
-    onAction: (LeftPanelAction) -> Unit,
+    filesState: FilesState,
+    onFilesAction: (FilesAction) -> Unit,
+    onLeftPanelAction: (LeftPanelAction) -> Unit,
 ) {
-
     Column(
         modifier = Modifier
             .shadow(
@@ -51,6 +54,11 @@ fun LeftPanel(
             .width(350.dp)
             .padding(top = 20.dp, bottom = 20.dp, start = 10.dp, end = 10.dp),
     ) {
+        FileContextMenu(
+            state = state.fileContextMenuState,
+            onOutsideClick = { onLeftPanelAction(LeftPanelAction.onCloseFileContextMenu) },
+        )
+
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -71,8 +79,9 @@ fun LeftPanel(
         Spacer(modifier = Modifier.height(20.dp))
 
         FilesView(
-            files = state.files,
-            onAction = onAction,
+            files = filesState.files,
+            onFilesAction = onFilesAction,
+            onLeftPanelAction = onLeftPanelAction,
         )
     }
 }
