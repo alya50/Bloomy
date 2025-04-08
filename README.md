@@ -1,3 +1,3 @@
 This is a Kotlin Multiplatform project targeting Android, Desktop.
 
-<img width="1000" alt="bloomy" src="https://github.com/user-attachments/assets/e424c2df-596e-43d4-9d13-925769e35da8" />
+![main](https://github.com/user-attachments/assets/739cbebc-e2d9-4b23-8648-e9fa8cc2f1df)
