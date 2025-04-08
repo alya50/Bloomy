@@ -14,16 +14,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -121,30 +116,3 @@ fun DirectoryView(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-internal fun Modifier.onFilePress(
-    onClick: () -> Unit,
-    layoutCoordinates: MutableState<LayoutCoordinates?>,
-    onLeftPanelAction: (LeftPanelAction) -> Unit,
-    path: String,
-) = Modifier.onPointerEvent(
-    PointerEventType.Press,
-) { event ->
-    println("Pressed")
-    if (event.buttons.isSecondaryPressed) {
-        println("Secondary pressed")
-            val localOffset = event.changes.first().position
-if (layoutCoordinates.value == null) println("Layout coordinates is null")
-        layoutCoordinates.value?.let { coordinates ->
-            val windowOffset = coordinates.localToWindow(localOffset)
-println("Window offset: $windowOffset")
-            onLeftPanelAction(
-                LeftPanelAction.OnFileRightClick(
-                    path,
-                    windowOffset
-                )
-            )
-        }
-    } else onClick()
-}

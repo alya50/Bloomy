@@ -33,7 +33,6 @@ import org.bloomy.project.core.theme.OutfitFontFamily
 import org.bloomy.project.screens.home.domain.model.FilesAction
 import org.bloomy.project.screens.home.domain.model.LeftPanelAction
 
-
 @Composable
 fun File(
     path: String,
@@ -60,6 +59,7 @@ fun File(
             ) { event ->
                 if (event.buttons.isSecondaryPressed) {
                     val localOffset = event.changes.first().position
+
                     layoutCoordinates.value?.let { coordinates ->
                         val windowOffset = coordinates.localToWindow(localOffset)
                         onLeftPanelAction(
