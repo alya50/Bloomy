@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -33,6 +34,7 @@ fun FilesView(
     files: MutableList<FileAndItsFiles>,
     onFilesAction: (FilesAction) -> Unit,
     onLeftPanelAction: (LeftPanelAction) -> Unit,
+    editingFilePath: String?
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
@@ -49,7 +51,8 @@ fun FilesView(
         IterateFiles(
             files = files,
             onFilesAction = onFilesAction,
-            onLeftPanelAction = onLeftPanelAction
+            onLeftPanelAction = onLeftPanelAction,
+            editingFilePath = editingFilePath
         )
     }
 }
@@ -57,29 +60,39 @@ fun FilesView(
 @Composable
 fun IterateFiles(
     files: List<FileAndItsFiles>,
+    editingFilePath: String?,
     onFilesAction: (FilesAction) -> Unit,
     onLeftPanelAction: (LeftPanelAction) -> Unit,
 ) {
-    for (file in files) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp)
+    val files = remember (files) { files }
+    val editingFilePath = remember (editingFilePath) { editingFilePath }
 
-        ) {
-            if (file.files?.isNotEmpty() == true)
-                DirectoryView(
-                    path = file.path,
-                    files = file.files,
-                    onFileAction = onFilesAction,
-                    onLeftPanelAction = onLeftPanelAction,
-                )
-            else
-                File(
-                    path = file.path,
-                    onFileAction = onFilesAction,
-                    onLeftPanelAction = onLeftPanelAction,
-                )
+    Column {
+        for (file in files) {
+            key(file.path) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp)
+
+                ) {
+                    if (file.files?.isNotEmpty() == true)
+                        DirectoryView(
+                            path = file.path,
+                            files = file.files,
+                            onFileAction = onFilesAction,
+                            onLeftPanelAction = onLeftPanelAction,
+                            editingFilePath = editingFilePath
+                        )
+                    else
+                        File(
+                            path = file.path,
+                            onFileAction = onFilesAction,
+                            onLeftPanelAction = onLeftPanelAction,
+                            editingFilePath = editingFilePath
+                        )
+                }
+            }
         }
     }
 }
@@ -90,6 +103,7 @@ fun DirectoryView(
     files: List<FileAndItsFiles>?,
     onFileAction: (FilesAction) -> Unit,
     onLeftPanelAction: (LeftPanelAction) -> Unit,
+    editingFilePath: String?
 ) {
     Column(
         modifier = Modifier
@@ -105,13 +119,15 @@ fun DirectoryView(
             isOpen = isOpen.value,
             onFileAction = onFileAction,
             onLeftPanelAction = onLeftPanelAction,
+            currentlyEditingFilePath = editingFilePath
         )
 
         if (isOpen.value)
             IterateFiles(
                 files = files!!,
                 onFilesAction = onFileAction,
-                onLeftPanelAction = onLeftPanelAction
+                onLeftPanelAction = onLeftPanelAction,
+                editingFilePath = editingFilePath
             )
     }
 }

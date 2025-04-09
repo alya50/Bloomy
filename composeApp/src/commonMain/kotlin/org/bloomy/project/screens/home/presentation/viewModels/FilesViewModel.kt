@@ -33,11 +33,28 @@ class FilesViewModel : ViewModel() {
             }
 
             is FilesAction.RenameFile -> {
+                try {
+                    val file = File(action.filePath)
+                    file.renameTo(File(action.filePath.substringBeforeLast("/") + "/" + action.newName))
 
+                    searchDirectories()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
 
             is FilesAction.CloseTab -> {}
             is FilesAction.SelectTab -> {}
+            is FilesAction.DeleteFile -> {
+                try {
+                    val file = File(action.filePath)
+                    file.delete()
+
+                    searchDirectories()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 

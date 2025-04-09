@@ -52,6 +52,6 @@ fun HomeScreen(
             onLeftPanelAction = onLeftPanelAction,
         )
         Editor()
-        Chat()
+        Chat(false,{},{})
     }
 }

@@ -15,16 +15,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.bloomy.project.core.theme.OutfitFontFamily
+import java.awt.SystemColor.text
 
 @Composable
 fun EditableText(
@@ -32,7 +42,7 @@ fun EditableText(
     onValueChange: (String) -> Unit,
     onClick: () -> Unit = {},
     editing: Boolean = false,
-    setEditing: (Boolean) -> Unit,
+    setIsDone: () -> Unit,
     fontFamily: FontFamily = OutfitFontFamily(),
     fontSize: TextUnit = 20.sp,
     fontWeight: FontWeight = FontWeight.Medium,
@@ -60,25 +70,32 @@ fun EditableText(
                 },
         )
     else {
-        val text = remember { mutableStateOf(value) }
         val focusRequester = remember { FocusRequester() }
         val coroutineScope = rememberCoroutineScope()
         var focusJob by remember { mutableStateOf<Job?>(null) }
+        var textFieldValueState by remember {
+            mutableStateOf(
+                TextFieldValue(
+                    text = value,
+                    selection = TextRange(value.length)
+                )
+            )
+        }
 
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
         }
 
         BasicTextField(
-            value = text.value,
+            value = textFieldValueState,
             onValueChange = {
                 focusJob?.cancel()
                 focusJob = coroutineScope.launch {
                     delay(3000)
-                    setEditing(false)
+                    setIsDone()
                 }
-                onValueChange(it)
-                text.value = it
+                textFieldValueState = it
+                onValueChange(textFieldValueState.text)
             },
             singleLine = singleLine,
             textStyle = TextStyle(
@@ -87,9 +104,32 @@ fun EditableText(
                 fontWeight = fontWeight,
                 color = color,
             ),
-            keyboardActions = keyboardActions,
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusJob?.cancel()
+                    setIsDone()
+                },
+                onSend = {
+                    focusJob?.cancel()
+                    setIsDone()
+                },
+                onGo = {
+                    focusJob?.cancel()
+                    setIsDone()
+                }
+            ),
             modifier = modifier
                 .focusRequester(focusRequester)
+                .onKeyEvent { event ->
+                    if (event.key == Key.Enter){
+                        focusJob?.cancel()
+                        setIsDone()
+                        true
+                    }
+
+                    false
+                }
+
         )
     }
 }

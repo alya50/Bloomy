@@ -1,27 +1,35 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package org.bloomy.project.screens.home.presentation.view.left_panel
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,12 +43,16 @@ import org.bloomy.project.core.composables.InPosition
 import org.bloomy.project.core.theme.OutfitFontFamily
 import org.bloomy.project.core.theme.size
 import org.bloomy.project.screens.home.domain.model.FileContextMenuState
+import org.bloomy.project.screens.home.domain.model.FilesAction
+import org.bloomy.project.screens.home.domain.model.LeftPanelAction
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun FileContextMenu(
     state: FileContextMenuState?,
     onOutsideClick: () -> Unit,
+    onLeftPanelAction: (LeftPanelAction) -> Unit,
+    onFileAction: (FilesAction) -> Unit,
 ) {
     if (state != null) {
         println(state.position)
@@ -89,20 +101,22 @@ fun FileContextMenu(
                     ) {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(
-                                space = 15.dp,
+                                space = 1.dp,
                                 alignment = Alignment.CenterVertically
                             ),
-                            modifier = Modifier
-                                .padding(
-                                    top = 10.dp,
-                                    bottom = 10.dp,
-                                    start = 10.dp,
-                                    end = 50.dp
-                                )
+                            modifier = Modifier.widthIn(max = 200.dp)
                         ) {
                             MenuItem(
                                 text = "Rename",
-                                onClick = { },
+                                onClick = {
+                                    println("Rename function")
+                                    onLeftPanelAction(
+                                        LeftPanelAction.RenameFile(
+                                            state.clickedFilePath,
+                                        )
+                                    )
+                                    onOutsideClick()
+                                },
                                 icon = painterResource(
                                     resource = Res.drawable.pen_line,
                                 )
@@ -110,7 +124,10 @@ fun FileContextMenu(
 
                             MenuItem(
                                 text = "Delete",
-                                onClick = { },
+                                onClick = {
+                                    onFileAction(FilesAction.DeleteFile(state.clickedFilePath))
+                                    onOutsideClick()
+                                },
                                 icon = painterResource(
                                     resource = Res.drawable.trash_2,
                                 )
@@ -125,23 +142,29 @@ fun FileContextMenu(
 }
 
 @Composable
-private fun MenuItem(
+private fun ColumnScope.MenuItem(
     text: String,
     onClick: () -> Unit,
     icon: Painter
 ) {
+    val hovering = remember { mutableStateOf(false) }
+
     Row(
-        horizontalArrangement = Arrangement.spacedBy(
-            space = 20.dp,
-            alignment = Alignment.CenterHorizontally
-        ),
+        horizontalArrangement = Arrangement.spacedBy(space = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(5.dp))
+            .background(if (hovering.value) Color(0x88fcd5a4) else Color.Transparent)
+            .padding(10.dp)
             .pointerInput(Unit) {
                 detectTapGestures {
                     onClick()
                 }
             }
+            .onPointerEvent(PointerEventType.Enter) { hovering.value = true }
+            .onPointerEvent(PointerEventType.Exit) { hovering.value = false }
+
     ) {
         Image(
             painter = icon,

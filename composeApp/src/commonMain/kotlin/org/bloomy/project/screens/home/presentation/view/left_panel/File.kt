@@ -13,7 +13,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -38,12 +37,14 @@ fun File(
     path: String,
     onFileAction: (FilesAction) -> Unit,
     onLeftPanelAction: (LeftPanelAction) -> Unit,
+    editingFilePath: String?
 ) {
     val name = path.substringAfterLast("/")
-    val interactionSource = remember { MutableInteractionSource() }
+    val interactionSource = rememberSaveable { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val backgroundColor = if (isHovered) Color(0x1f000000) else Color.Transparent
-    val layoutCoordinates = remember { mutableStateOf<LayoutCoordinates?>(null) }
+    val layoutCoordinates = rememberSaveable { mutableStateOf<LayoutCoordinates?>(null) }
+    val editing = rememberSaveable (editingFilePath) { mutableStateOf(editingFilePath == path) }
 
     Box(
         modifier = Modifier
@@ -76,7 +77,6 @@ fun File(
             }
     ) {
         val fileName = rememberSaveable { MutableStateFlow(name) }
-        val editing = rememberSaveable { mutableStateOf(false) }
 
         EditableText(
             value = fileName.value,
@@ -93,7 +93,10 @@ fun File(
                 },
             ),
             editing = editing.value,
-            setEditing = { editing.value = !editing.value },
+            setIsDone =  {
+                onFileAction(FilesAction.RenameFile(path, fileName.value))
+                onLeftPanelAction(LeftPanelAction.RenamingFileIsDone)
+            },
         )
     }
 }

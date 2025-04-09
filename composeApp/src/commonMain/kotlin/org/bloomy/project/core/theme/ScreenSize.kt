@@ -12,7 +12,7 @@ enum class Screen {
     SM, MD, LG, XL, XL2, XL3
 }
 
-val ScreenSizeName = MutableStateFlow(Screen.SM)
+val ScreenSizeName = MutableStateFlow<Screen>(Screen.SM)
 
 // Launch a coroutine to update _screenSizeName whenever _screenSize changes
 fun observeScreenSize(scope: CoroutineScope) {

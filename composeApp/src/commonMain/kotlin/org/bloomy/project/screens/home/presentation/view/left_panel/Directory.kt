@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,12 +52,14 @@ fun Directory(
     onFileAction: (FilesAction) -> Unit,
     isOpen: Boolean,
     onClick: () -> Unit,
+    currentlyEditingFilePath: String?
 ) {
-    val name = path.substringAfterLast("/")
+    val name = remember(path) { path.substringAfterLast("/") }
     val animatedIconRotation: Float by animateFloatAsState(
         if (isOpen) 90f else 0f,
         label = "folder_icon_rotation"
     )
+    val editing by derivedStateOf { mutableStateOf(currentlyEditingFilePath == path) }
     val layoutCoordinates = remember { mutableStateOf<LayoutCoordinates?>(null) }
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -104,7 +107,6 @@ fun Directory(
             )
 
             val fileName = remember(name) { MutableStateFlow(name) }
-            val editing = remember { mutableStateOf(false) }
 
             EditableText(
                 value = fileName.value,
@@ -121,7 +123,10 @@ fun Directory(
                     },
                 ),
                 editing = editing.value,
-                setEditing = { editing.value = !editing.value },
+                setIsDone = {
+                    onFileAction(FilesAction.RenameFile(path, fileName.value))
+                    onLeftPanelAction(LeftPanelAction.RenamingFileIsDone)
+                },
             )
         }
 

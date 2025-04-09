@@ -19,4 +19,5 @@ sealed class FilesAction {
     data class RenameFile(val filePath: String, val newName: String) : FilesAction()
     data class SelectTab(val filePath: String) : FilesAction()
     data class CloseTab(val filePath: String) : FilesAction()
+    data class DeleteFile(val filePath: String) : FilesAction()
 }

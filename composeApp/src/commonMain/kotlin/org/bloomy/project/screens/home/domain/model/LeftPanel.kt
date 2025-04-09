@@ -3,6 +3,7 @@ package org.bloomy.project.screens.home.domain.model
 import androidx.compose.ui.geometry.Offset
 
 data class LeftPanelState(
+    val isLeftPanelOpen: Boolean = false,
     val searchResults: MutableList<SearchResult> = mutableListOf(),
     // the file which was last clicked
     val lastClickedFile: String? = null,
@@ -13,7 +14,7 @@ data class LeftPanelState(
     // menu which appers when right clicking on a file
     val fileContextMenuState: FileContextMenuState? = null,
     // currently editing filename path
-    val editingFilename: String? = null,
+    val currentlyEditingFilePath: String? = null,
 )
 
 data class SearchResult(
@@ -41,8 +42,18 @@ sealed class LeftPanelAction {
     ) : LeftPanelAction()
 
     data object onCloseFileContextMenu : LeftPanelAction()
+
+    data class RenameFile(
+        val filePath: String,
+    ): LeftPanelAction()
+
+    object RenamingFileIsDone : LeftPanelAction()
+
+    data object openLeftPanel : LeftPanelAction()
+    data object closeLeftPanel : LeftPanelAction()
 }
 
 data class FileContextMenuState(
     val position: Offset,
+    val clickedFilePath: String,
 )
