@@ -1,6 +1,8 @@
 import androidx.compose.runtime.Composable
 
 @Composable
-expect fun EmptyContextMenu(
+actual fun EmptyContextMenu(
     content: @Composable () -> Unit
-): Unit
+): Unit {
+    content()
+}

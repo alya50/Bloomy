@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 
@@ -20,13 +20,6 @@ fun CursorPositionLogger() {
             .fillMaxSize()
             .onGloballyPositioned { coordinates ->
                 layoutCoordinates = coordinates
-            }
-            .onPointerEvent(PointerEventType.Move) { event ->
-                val localOffset = event.changes.first().position
-                layoutCoordinates?.let { coordinates ->
-                    val windowOffset = coordinates.localToWindow(localOffset)
-                    println("Cursor coordinates relative to window: $windowOffset")
-                }
             }
     )
 }

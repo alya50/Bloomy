@@ -29,7 +29,7 @@ sealed class LeftPanelAction {
     * */
     data class OnFileRightClick(
         val filePath: String,
-        val position: Offset,
+        val position: Offset?,
     ) : LeftPanelAction()
 
     /*
@@ -54,6 +54,6 @@ sealed class LeftPanelAction {
 }
 
 data class FileContextMenuState(
-    val position: Offset,
+    val position: Offset?,
     val clickedFilePath: String,
 )

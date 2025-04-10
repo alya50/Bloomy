@@ -1,30 +1,20 @@
-@file:OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
-    ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class
-)
-
 package org.bloomy.project.screens.home.presentation.view.left_panel
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import EmptyContextMenu
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.LocalTextContextMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.bloomy.project.core.composables.EmptyContextMenu
 import org.bloomy.project.screens.home.domain.model.FileAndItsFiles
 import org.bloomy.project.screens.home.domain.model.FilesAction
 import org.bloomy.project.screens.home.domain.model.LeftPanelAction
@@ -45,9 +35,7 @@ fun FilesView(
         }
     }
 
-    CompositionLocalProvider(
-        LocalTextContextMenu provides EmptyContextMenu
-    ) {
+    EmptyContextMenu {
         IterateFiles(
             files = files,
             onFilesAction = onFilesAction,
@@ -64,8 +52,8 @@ fun IterateFiles(
     onFilesAction: (FilesAction) -> Unit,
     onLeftPanelAction: (LeftPanelAction) -> Unit,
 ) {
-    val files = remember (files) { files }
-    val editingFilePath = remember (editingFilePath) { editingFilePath }
+    val files = remember(files) { files }
+    val editingFilePath = remember(editingFilePath) { editingFilePath }
 
     Column {
         for (file in files) {

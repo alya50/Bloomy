@@ -5,6 +5,7 @@ package org.bloomy.project.screens.home.presentation.view.left_panel
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
@@ -20,7 +21,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -29,7 +29,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
@@ -74,21 +74,41 @@ fun Directory(
             .onGloballyPositioned { coordinates ->
                 layoutCoordinates.value = coordinates
             }
-            .onPointerEvent(
-                PointerEventType.Press,
-            ) { event ->
-                if (event.buttons.isSecondaryPressed) {
-                    val localOffset = event.changes.first().position
-                    layoutCoordinates.value?.let { coordinates ->
-                        val windowOffset = coordinates.localToWindow(localOffset)
-                        onLeftPanelAction(
-                            LeftPanelAction.OnFileRightClick(
-                                path,
-                                windowOffset
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {offset ->
+                        println("on long press")
+                        layoutCoordinates.value?.let { coordinates ->
+                            println("on long press")
+                            onLeftPanelAction(
+                                LeftPanelAction.OnFileRightClick(
+                                    path,
+                                    position = null
+                                )
                             )
-                        )
+                        }
                     }
-                } else onClick()
+                )
+            }
+            .pointerInput(
+                PointerEventType.Press,
+            ) {
+                awaitPointerEventScope {
+                    val event = awaitPointerEvent()
+
+                    if (event.buttons.isSecondaryPressed) {
+                        val localOffset = event.changes.first().position
+                        layoutCoordinates.value?.let { coordinates ->
+                            val windowOffset = coordinates.localToWindow(localOffset)
+                            onLeftPanelAction(
+                                LeftPanelAction.OnFileRightClick(
+                                    path,
+                                    windowOffset
+                                )
+                            )
+                        }
+                    } else onClick()
+                }
             }
 
     ) {

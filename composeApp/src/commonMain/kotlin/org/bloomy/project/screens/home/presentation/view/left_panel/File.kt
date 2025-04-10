@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -20,7 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +41,7 @@ fun File(
     editingFilePath: String?
 ) {
     val name = path.substringAfterLast("/")
-    val interactionSource = rememberSaveable { MutableInteractionSource() }
+    val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val backgroundColor = if (isHovered) Color(0x1f000000) else Color.Transparent
     val layoutCoordinates = rememberSaveable { mutableStateOf<LayoutCoordinates?>(null) }
@@ -55,28 +56,32 @@ fun File(
             .onGloballyPositioned { coordinates ->
                 layoutCoordinates.value = coordinates
             }
-            .onPointerEvent(
+            .pointerInput(
                 PointerEventType.Press,
-            ) { event ->
-                if (event.buttons.isSecondaryPressed) {
-                    val localOffset = event.changes.first().position
+            ) {
+                awaitPointerEventScope {
+                    val event = awaitPointerEvent()
 
-                    layoutCoordinates.value?.let { coordinates ->
-                        val windowOffset = coordinates.localToWindow(localOffset)
-                        onLeftPanelAction(
-                            LeftPanelAction.OnFileRightClick(
-                                path,
-                                windowOffset
+                    if (event.buttons.isSecondaryPressed) {
+                        val localOffset = event.changes.first().position
+
+                        layoutCoordinates.value?.let { coordinates ->
+                            val windowOffset = coordinates.localToWindow(localOffset)
+                            onLeftPanelAction(
+                                LeftPanelAction.OnFileRightClick(
+                                    path,
+                                    windowOffset
+                                )
                             )
-                        )
+                        }
+                    } else {
+                        onLeftPanelAction(LeftPanelAction.OnFileClick(path))
+                        onFileAction(FilesAction.SelectTab(path))
                     }
-                } else {
-                    onLeftPanelAction(LeftPanelAction.OnFileClick(path))
-                    onFileAction(FilesAction.SelectTab(path))
                 }
             }
     ) {
-        val fileName = rememberSaveable { MutableStateFlow(name) }
+        val fileName = rememberSaveable { mutableStateOf(name) }
 
         EditableText(
             value = fileName.value,

@@ -17,7 +17,6 @@ import bloomy.composeapp.generated.resources.geist_medium
 import bloomy.composeapp.generated.resources.geist_regular
 import bloomy.composeapp.generated.resources.geist_semibold
 import bloomy.composeapp.generated.resources.geist_thin
-import bloomy.composeapp.generated.resources.inter
 import bloomy.composeapp.generated.resources.inter_lg_black
 import bloomy.composeapp.generated.resources.inter_lg_blackitalic
 import bloomy.composeapp.generated.resources.inter_lg_bold

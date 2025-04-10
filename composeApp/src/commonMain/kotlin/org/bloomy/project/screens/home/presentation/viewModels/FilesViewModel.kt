@@ -14,7 +14,9 @@ import org.bloomy.project.screens.home.domain.model.FilesAction
 import org.bloomy.project.screens.home.domain.model.FilesState
 import java.io.File
 
-class FilesViewModel : ViewModel() {
+class FilesViewModel(
+    private val folders: AppFolders
+) : ViewModel() {
     private val _state = MutableStateFlow(FilesState())
     val state = _state
         .onStart {
@@ -60,7 +62,7 @@ class FilesViewModel : ViewModel() {
 
     private fun searchDirectories() {
         viewModelScope.launch(Dispatchers.IO) {
-            val rootFile = AppFolders.markdownFiles
+            val rootFile = folders.markdownFiles
             val rootDirectoryContents = mutableListOf<FileAndItsFiles>()
 
             for (file in rootFile.listFiles()!!) {

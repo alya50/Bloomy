@@ -29,18 +29,22 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import bloomy.composeapp.generated.resources.Res
 import bloomy.composeapp.generated.resources.pen_line
 import bloomy.composeapp.generated.resources.trash_2
 import org.bloomy.project.core.composables.Fullscreen
 import org.bloomy.project.core.composables.InPosition
 import org.bloomy.project.core.theme.OutfitFontFamily
+import org.bloomy.project.core.theme.ScreenSize
+import org.bloomy.project.core.theme.ScreenSizeName
 import org.bloomy.project.core.theme.size
 import org.bloomy.project.screens.home.domain.model.FileContextMenuState
 import org.bloomy.project.screens.home.domain.model.FilesAction
@@ -54,6 +58,9 @@ fun FileContextMenu(
     onLeftPanelAction: (LeftPanelAction) -> Unit,
     onFileAction: (FilesAction) -> Unit,
 ) {
+    val screenName = ScreenSizeName.collectAsStateWithLifecycle()
+    val screenSize = ScreenSize.collectAsStateWithLifecycle()
+
     if (state != null) {
         println(state.position)
         Fullscreen {
@@ -77,61 +84,81 @@ fun FileContextMenu(
                     }
             )
             {
+                val isLongPress = state.position == null
+                val layoutCoordinates = remember { mutableStateOf<LayoutCoordinates?>(null) }
+
+                println("isLongPress: $isLongPress")
                 InPosition(
-                    x = state.position.x.toInt(),
-                    y = state.position.y.toInt(),
+                    x = if (!isLongPress) state.position!!.x.toInt() else screenSize.value.first.toInt() - (if (layoutCoordinates.value != null) layoutCoordinates.value!!.size.width.toInt() else 0),
+                    y = if (!isLongPress) state.position!!.y.toInt() else screenSize.value.second.toInt() -  (if (layoutCoordinates.value != null) layoutCoordinates.value!!.size.height.toInt() else 0),
                 ) {
+
+                    val longPressModifier = when (isLongPress) {
+                        true -> Modifier
+                            .fillMaxWidth()
+
+                        false -> Modifier
+                    }
+
                     Box(
                         modifier = Modifier
-                            .shadow(
-                                10.dp,
-                                shape = RoundedCornerShape(10.dp),
-                                ambientColor = Color(0x71000000)
-                            )
-                            .background(Color(0xffffecd3))
-                            .zIndex(30f)
-                            .pointerInput(Unit) {
-                                detectTapGestures { offset ->
-                                    // Consume the tap event, preventing it from propagating
-                                    // to the parent.  Alternatively, you could use
-                                    // pointerInput {  awaitPointerEventScope { ... } } and
-                                    // check/consume within the scope.
-                                }
+                            .onGloballyPositioned {
+                                layoutCoordinates.value = it
                             }
+                            .padding(if (isLongPress) 0.dp else 10.dp)
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(
-                                space = 1.dp,
-                                alignment = Alignment.CenterVertically
-                            ),
-                            modifier = Modifier.widthIn(max = 200.dp)
+                        Box(
+                            modifier = longPressModifier
+                                .shadow(
+                                    10.dp,
+                                    shape = RoundedCornerShape(10.dp),
+                                    ambientColor = Color(0x71000000)
+                                )
+                                .background(Color(0xffffecd3))
+                                .zIndex(30f)
+                                .pointerInput(Unit) {
+                                    detectTapGestures { offset ->
+                                        // Consume the tap event, preventing it from propagating
+                                        // to the parent.  Alternatively, you could use
+                                        // pointerInput {  awaitPointerEventScope { ... } } and
+                                        // check/consume within the scope.
+                                    }
+                                }
                         ) {
-                            MenuItem(
-                                text = "Rename",
-                                onClick = {
-                                    println("Rename function")
-                                    onLeftPanelAction(
-                                        LeftPanelAction.RenameFile(
-                                            state.clickedFilePath,
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(
+                                    space = 1.dp,
+                                    alignment = Alignment.CenterVertically
+                                ),
+                                modifier = Modifier.widthIn(max = 200.dp)
+                            ) {
+                                MenuItem(
+                                    text = "Rename",
+                                    onClick = {
+                                        println("Rename function")
+                                        onLeftPanelAction(
+                                            LeftPanelAction.RenameFile(
+                                                state.clickedFilePath,
+                                            )
                                         )
+                                        onOutsideClick()
+                                    },
+                                    icon = painterResource(
+                                        resource = Res.drawable.pen_line,
                                     )
-                                    onOutsideClick()
-                                },
-                                icon = painterResource(
-                                    resource = Res.drawable.pen_line,
                                 )
-                            )
 
-                            MenuItem(
-                                text = "Delete",
-                                onClick = {
-                                    onFileAction(FilesAction.DeleteFile(state.clickedFilePath))
-                                    onOutsideClick()
-                                },
-                                icon = painterResource(
-                                    resource = Res.drawable.trash_2,
+                                MenuItem(
+                                    text = "Delete",
+                                    onClick = {
+                                        onFileAction(FilesAction.DeleteFile(state.clickedFilePath))
+                                        onOutsideClick()
+                                    },
+                                    icon = painterResource(
+                                        resource = Res.drawable.trash_2,
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
 
@@ -162,8 +189,8 @@ private fun ColumnScope.MenuItem(
                     onClick()
                 }
             }
-            .onPointerEvent(PointerEventType.Enter) { hovering.value = true }
-            .onPointerEvent(PointerEventType.Exit) { hovering.value = false }
+            .pointerInput(PointerEventType.Enter) { hovering.value = true }
+            .pointerInput(PointerEventType.Exit) { hovering.value = false }
 
     ) {
         Image(

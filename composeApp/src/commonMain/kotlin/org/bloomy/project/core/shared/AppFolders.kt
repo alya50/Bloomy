@@ -4,7 +4,7 @@ package org.bloomy.project.core.shared
 
 import java.io.File
 
-expect object AppFolders {
+expect class AppFolders {
     val generalAppData: File
     val markdownFiles: File
 }

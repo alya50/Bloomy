@@ -2,7 +2,8 @@ package org.bloomy.project.core.shared
 
 import java.io.File
 
-actual object AppFolders {
+
+actual class AppFolders {
     actual val generalAppData: File by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         val os = System.getProperty("os.name").lowercase()
         val userHome = System.getProperty("user.home")
